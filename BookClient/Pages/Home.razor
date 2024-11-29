@@ -1,0 +1,225 @@
+﻿@page "/"
+@using Shared.Enums
+@using Microsoft.AspNetCore.SignalR.Client
+@using Shared.Models
+@using Shared.Utils
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject HubConnection HubConnection
+@attribute [StreamRendering]
+
+<PageTitle>Books</PageTitle>
+
+<h1>Books</h1>
+
+@if (Books == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    <div class="mb-4">
+                        <label @onclick='() => SortBy("Title")' for="filterTitle" class="form-label">
+                            Title @RenderSortIcon("Title")
+                        </label>
+                        <input type="text" id="filterTitle" class="form-control" @bind="FilterBook.Title" />
+                    </div>
+                </th>
+                <th>
+                    <div class="mb-4">
+                        <label @onclick='() => SortBy("Author")' for="filterAuthor" class="form-label">
+                            Author @RenderSortIcon("Author")
+                        </label>
+                        <input type="text" id="filterAuthor" class="form-control" @bind="FilterBook.Author" />
+                    </div>
+                </th>
+                <th>
+                    <div class="mb-4">
+                        <label @onclick='() => SortBy("Genre")' for="filterGenre" class="form-label">
+                            Genre @RenderSortIcon("Genre")
+                        </label>
+                        <select id="filterGenre" class="form-select" @bind="FilterBook.Genre">
+                            <option value="" selected></option>
+                            @foreach (var genre in Enum.GetValues<Genre>())
+                            {
+                                <option value="@genre">@genre.GetDisplayName()</option>
+                            }
+                        </select>
+                    </div>
+                </th>
+                <th>
+                    <label @onclick='() => SortBy("Created")' for="filterCreated" class="form-label">
+                        Created @RenderSortIcon("Created")
+                    </label>
+                </th>
+                <th>
+                    <label @onclick='() => SortBy("Updated")' for="filterUpdated" class="form-label">
+                        Updated @RenderSortIcon("Updated")
+                    </label>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var book in PagedBooks)
+            {
+                <tr @onclick="() => NavigateToEditTaskPage(book.Id)" style="cursor: pointer;">
+                    <td>@book.Title</td>
+                    <td>@book.Author</td>
+                    <td>@book.Genre.GetDisplayName()</td>
+                    <td>@book.Created.ToLongTimeString()</td>
+                    <td>@book.Updated.ToLongTimeString()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="(PreviousPage)">Previous</button>
+            </li>
+            @for (int i = 1; i <= TotalPages; i++)
+            {
+                var index = i;
+                <li class="page-item @(CurrentPage == index ? "active" : "")">
+                    <button class="page-link" @onclick="() => GoToPage(index)">@index</button>
+                </li>
+            }
+            <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="NextPage">Next</button>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="mb-3">
+        <button type="submit" class="btn btn-primary" @onclick="ApplyFilter">Apply Filter</button>
+    </div>
+
+
+    <div class="mb-3">
+        <span class="text-danger">@ErrorMessage</span>
+    </div>
+}
+
+@code {
+    private BookFilter FilterBook { get; set; } = new();
+    private List<BookView> Books { get; set; } = new();
+    private string ErrorMessage = "";
+
+    private IEnumerable<BookView> PagedBooks => Books?
+        .OrderBy(task => IsSortDescending ? null : GetSortValue(task))
+        .ThenByDescending(task => IsSortDescending ? GetSortValue(task) : null)
+        .Skip((CurrentPage - 1) * PageSize)
+        .Take(PageSize) ?? [];
+
+    // Sorting
+    private string SortColumn { get; set; } = "Title";
+    private bool IsSortDescending { get; set; } = false;
+    // Pagination
+    private int CurrentPage { get; set; } = 1;
+    private int PageSize { get; set; } = 5;
+    private int TotalPages => (int)Math.Ceiling((double)(Books?.Count ?? 0) / PageSize);
+
+    private object? GetSortValue(BookView task) => SortColumn switch
+    {
+        nameof(task.Id) => task.Id,
+        nameof(task.Title) => task.Title,
+        nameof(task.Author) => task.Author,
+        nameof(task.Genre) => task.Genre,
+        nameof(task.Created) => task.Created,
+        nameof(task.Updated) => task.Updated,
+        _ => null
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await ApplyFilter();
+
+            if (HubConnection.State == HubConnectionState.Disconnected)
+            {
+                HubConnection.On("ReceiveTableUpdate", async () =>
+                   {
+                       await ApplyFilter();
+                       await InvokeAsync(StateHasChanged);
+                   });
+                await HubConnection.StartAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex}");
+        }
+    }
+
+    private void NavigateToEditTaskPage(Guid taskId) => Navigation.NavigateTo($"/upsert-book/{taskId}");
+
+    private void PreviousPage()
+    {
+        if (CurrentPage > 1)
+        {
+            CurrentPage--;
+        }
+    }
+
+    private void NextPage()
+    {
+        if (CurrentPage < TotalPages)
+        {
+            CurrentPage++;
+        }
+    }
+
+    private void GoToPage(int currPage) => CurrentPage = currPage;
+
+    private void SortBy(string column)
+    {
+        if (SortColumn == column)
+        {
+            IsSortDescending = !IsSortDescending;
+        }
+        else
+        {
+            SortColumn = column;
+            IsSortDescending = false;
+        }
+    }
+
+    private string RenderSortIcon(string column)
+    {
+        if (SortColumn != column)
+            return string.Empty;
+
+        return IsSortDescending ? "▼" : "▲";
+    }
+
+    private async Task ApplyFilter()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("/filter-books", FilterBook);
+            if (response.IsSuccessStatusCode)
+            {
+                Books = await response.Content.ReadFromJsonAsync<List<BookView>>() ?? [];
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            {
+                ErrorMessage = "Too many requests from this IP.";
+            }
+            else
+            {
+                ErrorMessage = "Error on api call.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+}

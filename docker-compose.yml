@@ -1,0 +1,23 @@
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: BookServer/Dockerfile
+    ports:
+      - "5028:8080"
+    networks:
+      - app-network
+
+  client:
+    build:
+      context: .
+      dockerfile: BookClient/Dockerfile
+    ports:
+      - "7172:80"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

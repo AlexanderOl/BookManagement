@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookServer", "BookServer\BookServer.csproj", "{B0F20C13-A6FF-46D9-AF68-5BB3065804FA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "Shared\Shared.csproj", "{A56C7FFC-AA02-4E23-A23A-765D4F1B4294}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookClient", "BookClient\BookClient.csproj", "{74247F6C-20C6-4137-9424-DEDB555CE3D4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B0F20C13-A6FF-46D9-AF68-5BB3065804FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0F20C13-A6FF-46D9-AF68-5BB3065804FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0F20C13-A6FF-46D9-AF68-5BB3065804FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0F20C13-A6FF-46D9-AF68-5BB3065804FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A56C7FFC-AA02-4E23-A23A-765D4F1B4294}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A56C7FFC-AA02-4E23-A23A-765D4F1B4294}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A56C7FFC-AA02-4E23-A23A-765D4F1B4294}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A56C7FFC-AA02-4E23-A23A-765D4F1B4294}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74247F6C-20C6-4137-9424-DEDB555CE3D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74247F6C-20C6-4137-9424-DEDB555CE3D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74247F6C-20C6-4137-9424-DEDB555CE3D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74247F6C-20C6-4137-9424-DEDB555CE3D4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3311460F-7FD0-4E75-98ED-85395AD6AFEA}
+	EndGlobalSection
+EndGlobal
